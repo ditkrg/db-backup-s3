@@ -4,18 +4,13 @@ set -eu
 set -o pipefail
 
 source ./env.sh
+source ./helpers.sh
 
-echo "Creating backup of $POSTGRES_DATABASE database..."
-pg_dump --format=custom \
-        -h $POSTGRES_HOST \
-        -p $POSTGRES_PORT \
-        -U $POSTGRES_USER \
-        -d $POSTGRES_DATABASE \
-        $PGDUMP_EXTRA_OPTS \
-        > db.dump
+echo "Creating backup of $DATABASE_NAME database..."
+backup
 
 timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
-s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${POSTGRES_DATABASE}_${timestamp}.dump"
+s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.dump"
 
 if [ -n "$PASSPHRASE" ]; then
   echo "Encrypting backup..."

@@ -1,5 +1,5 @@
 # Introduction
-This project provides Docker images to periodically back up a PostgreSQL database to AWS S3, and to restore from the backup as needed.
+This project provides Docker images to periodically back up a database to AWS S3, and to restore from the backup as needed.
 
 # Usage
 ## Backup
@@ -8,11 +8,11 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      DATABASE_USER: user
+      DATABASE_PASSWORD: password
 
   backup:
-    image: eeshugerman/postgres-backup-s3:15
+    image: reg.dev.krd/db-backup-s3/postgres-backup:alpine-3.18
     environment:
       SCHEDULE: '@weekly'     # optional
       BACKUP_KEEP_DAYS: 7     # optional
@@ -22,10 +22,10 @@ services:
       S3_SECRET_ACCESS_KEY: secret
       S3_BUCKET: my-bucket
       S3_PREFIX: backup
-      POSTGRES_HOST: postgres
-      POSTGRES_DATABASE: dbname
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      DATABASE_HOST: postgres
+      DATABASE_NAME: dbname
+      DATABASE_USER: user
+      DATABASE_PASSWORD: password
 ```
 
 - Images are tagged by the major PostgreSQL version supported: `11`, `12`, `13`, `14`, or `15`.
@@ -61,22 +61,7 @@ docker compose up -d
 ```
 
 # Acknowledgements
-This project is a fork and re-structuring of @schickling's [postgres-backup-s3](https://github.com/schickling/dockerfiles/tree/master/postgres-backup-s3) and [postgres-restore-s3](https://github.com/schickling/dockerfiles/tree/master/postgres-restore-s3).
+This project is a fork and re-structuring @eeshugerman's fork of @schickling's [postgres-backup-s3](https://github.com/schickling/dockerfiles/tree/master/postgres-backup-s3) and [postgres-restore-s3](https://github.com/schickling/dockerfiles/tree/master/postgres-restore-s3).
 
 ## Fork goals
-These changes would have been difficult or impossible merge into @schickling's repo or similarly-structured forks.
-  - dedicated repository
-  - automated builds
-  - support multiple PostgreSQL versions
-  - backup and restore with one image
-
-## Other changes and features
-  - some environment variables renamed or removed
-  - uses `pg_dump`'s `custom` format (see [docs](https://www.postgresql.org/docs/10/app-pgdump.html))
-  - drop and re-create all database objects on restore
-  - backup blobs and all schemas by default
-  - no Python 2 dependencies
-  - filter backups on S3 by database name
-  - support encrypted (password-protected) backups
-  - support for restoring from a specific backup by timestamp
-  - support for auto-removal of old backups
+The fork by @eeshugerman works very well for postgres databases, the repo is intended to add support for different databases.
