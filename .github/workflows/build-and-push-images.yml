@@ -9,19 +9,10 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        include:
-          - { db: mysql, alpine: 3.18 }
-          - { db: postgres, alpine: 3.18 }
+    env:
+      ALPINE_VERSION: 3.18
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -35,12 +26,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
           push: true
-          tags: db-backup-s3/${{ matrix.db }}-backup:alpine-${{ matrix.alpine }}
+          tags: reg.dev.krd/db-backup-s3/db-backup-s3:alpine-${{ env.ALPINE_VERSION }}
           build-args: |
-            ALPINE_VERSION=${{ matrix.alpine }}
-            DATABASE_SERVER=${{ matrix.db }}
-          platforms: |
-            linux/amd64
-            linux/arm64
+            ALPINE_VERSION=${{ env.ALPINE_VERSION }}

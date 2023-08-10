@@ -3,6 +3,11 @@ if [ -z "$S3_BUCKET" ]; then
   exit 1
 fi
 
+if [ -z "$DATABASE_SERVER" ]; then
+  echo "You need to set the DATABASE_SERVER environment variable. (postgres, mysql)"
+  exit 1
+fi
+
 if [ -z "$DATABASE_NAME" ]; then
   echo "You need to set the DATABASE_NAME environment variable."
   exit 1

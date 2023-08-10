@@ -12,7 +12,7 @@ services:
       DATABASE_PASSWORD: password
 
   backup:
-    image: reg.dev.krd/db-backup-s3/postgres-backup:alpine-3.18
+    image: reg.dev.krd/db-backup-s3/db-backup-s3:alpine-3.18
     environment:
       SCHEDULE: '@weekly'     # optional
       BACKUP_KEEP_DAYS: 7     # optional
@@ -26,6 +26,7 @@ services:
       DATABASE_NAME: dbname
       DATABASE_USER: user
       DATABASE_PASSWORD: password
+      DATABASE_SERVER: postgres
 ```
 
 - Images are tagged by the major PostgreSQL version supported: `11`, `12`, `13`, `14`, or `15`.

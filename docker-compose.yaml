@@ -31,7 +31,6 @@ services:
       context: .
       args:
         ALPINE_VERSION: '3.18'
-        DATABASE_SERVER: postgres
     environment:
 #      SCHEDULE: '@weekly'     # optional
       BACKUP_KEEP_DAYS: 7     # optional
@@ -46,6 +45,7 @@ services:
       DATABASE_NAME: user
       DATABASE_USER: user
       DATABASE_PORT: 5432
+      DATABASE_SERVER: postgres
       DATABASE_PASSWORD: password
 
   backup-mysql:
@@ -53,7 +53,6 @@ services:
       context: .
       args:
         ALPINE_VERSION: '3.18'
-        DATABASE_SERVER: mysql
     environment:
 #      SCHEDULE: '@weekly'     # optional
       BACKUP_KEEP_DAYS: 7     # optional
@@ -68,4 +67,5 @@ services:
       DATABASE_NAME: database
       DATABASE_USER: root
       DATABASE_PORT: 3306
+      DATABASE_SERVER: mysql
       DATABASE_PASSWORD: root_password
