@@ -4,8 +4,8 @@ backup() {
 
     if [[ "$DATABASE_SERVER" == "postgres" ]]; then
         backup_postgres
-    elif [[ "$DATABASE_SERVER" == "mysql" ]]; then
-        backup_mysql
+    elif [[ "$DATABASE_SERVER" == "mariadb" ]]; then
+        backup_mariadb
     else
         echo "Unknown database server: $DATABASE_SERVER"
         exit 1
@@ -15,8 +15,8 @@ backup() {
 restore() {
     if [[ "$DATABASE_SERVER" == "postgres" ]]; then
         restore_postgres
-    elif [[ "$DATABASE_SERVER" == "mysql" ]]; then
-        restore_mysql
+    elif [[ "$DATABASE_SERVER" == "mariadb" ]]; then
+        restore_mariadb
     else
         echo "Unknown database server: $DATABASE_SERVER"
         exit 1
@@ -37,18 +37,18 @@ backup_postgres() {
         $PGDUMP_EXTRA_OPTS > db.dump
 }
 
-backup_mysql() {
-    mysqldump \
+backup_mariadb() {
+    mariadb-dump \
         --host "$DATABASE_HOST" \
         --port "$DATABASE_PORT" \
         --user "$DATABASE_USER" \
-        --password="$DATABASE_PASSWORD" $MYSQLDUMP_EXTRA_OPTS \
+        --password="$DATABASE_PASSWORD" $MARIADB_DUMP_EXTRA_OPTS \
         $DATABASE_NAME > db.dump
 }
 
-restore_mysql() {
+restore_mariadb() {
     echo "Restoring from backup..."
-    mysql \
+    mariadb \
         -h $DATABASE_HOST \
         -P $DATABASE_PORT \
         -u $DATABASE_USER \
