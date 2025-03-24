@@ -1,6 +1,6 @@
 
 # Download go-cron
-ARG ALPINE_VERSION=3.18
+ARG ALPINE_VERSION=3.21
 
 FROM curlimages/curl AS go-cron-downloader
 ARG GOCRON_VERSION=0.0.5

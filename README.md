@@ -12,7 +12,7 @@ services:
       DATABASE_PASSWORD: password
 
   backup:
-    image: reg.dev.krd/db-backup-s3/db-backup-s3:alpine-3.18
+    image: reg.dev.krd/db-backup-s3/db-backup-s3:alpine-3.21
     environment:
       SCHEDULE: '@weekly'     # optional
       BACKUP_KEEP_DAYS: 7     # optional
