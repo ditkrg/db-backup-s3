@@ -5,6 +5,13 @@ on:
   push:
     branches: ['main']
 
+  # Run manually from the GitHub UI
+  workflow_dispatch:
+
+  # Run automatically on the 1st of every month at 00:00 UTC
+  schedule:
+    - cron: '0 0 1 * *'
+
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
