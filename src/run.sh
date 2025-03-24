@@ -11,5 +11,8 @@ fi
 if [ -z "$SCHEDULE" ]; then
   sh backup.sh
 else
-  exec go-cron "$SCHEDULE" /bin/sh backup.sh
+  # Use crond from busybox which is available in Alpine
+  echo "$SCHEDULE /bin/sh $(pwd)/backup.sh" > /etc/crontabs/root
+  # Start crond in foreground mode
+  exec crond -f -d 8
 fi

@@ -2,12 +2,6 @@
 # Download go-cron
 ARG ALPINE_VERSION=3.21
 
-FROM curlimages/curl AS go-cron-downloader
-ARG GOCRON_VERSION=0.0.5
-
-RUN curl -sL https://github.com/ivoronin/go-cron/releases/download/v${GOCRON_VERSION}/go-cron_${GOCRON_VERSION}_linux_amd64.tar.gz -O
-RUN tar xvf go-cron_${GOCRON_VERSION}_linux_amd64.tar.gz
-
 FROM alpine:${ALPINE_VERSION}
 
 RUN apk update && \
@@ -18,8 +12,6 @@ RUN apk update && \
     mysql-client mariadb-connector-c
 
 RUN rm -rf /var/cache/apk/*
-
-COPY --from=go-cron-downloader /home/curl_user/go-cron /usr/local/bin/go-cron
 
 ENV DATABASE_NAME ''
 ENV DATABASE_HOST ''
