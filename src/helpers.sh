@@ -42,7 +42,7 @@ backup_mariadb() {
         --host "$DATABASE_HOST" \
         --port "$DATABASE_PORT" \
         --user "$DATABASE_USER" \
-        --password="$DATABASE_PASSWORD" $MARIADB_DUMP_EXTRA_OPTS \
+        --password="$DATABASE_PASSWORD" "$MARIADB_DUMP_EXTRA_OPTS" \
         $DATABASE_NAME > db.dump
 }
 
@@ -52,7 +52,7 @@ restore_mariadb() {
         -h $DATABASE_HOST \
         -P $DATABASE_PORT \
         -u $DATABASE_USER \
-        --password="$DATABASE_PASSWORD" \
+        --password="$DATABASE_PASSWORD" "$MARIADB_EXTRA_OPTS" \
         $DATABASE_NAME < db.dump
     rm db.dump
 }
