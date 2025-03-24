@@ -54,5 +54,4 @@ restore_mariadb() {
         -u $DATABASE_USER \
         --password="$DATABASE_PASSWORD" "$MARIADB_EXTRA_OPTS" \
         $DATABASE_NAME < db.dump
-    rm db.dump
 }
