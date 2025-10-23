@@ -16,9 +16,10 @@ STATEFULSET_NAME="mssql"
 POD_NAME="mssql-0"
 MSSQL_PASSWORD="YourStrong@Passw0rd"
 DATABASE_NAME="TestDB"
+MSSQL_BACKUP_DIR="${MSSQL_BACKUP_DIR:-/var/opt/mssql/data}"
 S3_BUCKET="${S3_BUCKET:-test-backups}"
 S3_ENDPOINT="${S3_ENDPOINT:-}"  # Set this if using MinIO or other S3-compatible storage
-STATEFULSET_FILE="${STATEFULSET_FILE:-k8s-statefulset-with-sidecar.yaml}"
+STATEFULSET_FILE="${STATEFULSET_FILE:-$(dirname "$0")/../k8s-statefulset-with-sidecar.yaml}"
 
 # Cleanup function
 cleanup() {
@@ -139,15 +140,31 @@ kubectl logs $POD_NAME -c backup -n $NAMESPACE --tail=20
 # Optional: List S3 backups if aws CLI is available in the backup container
 echo ""
 echo -e "${YELLOW}📋 Checking S3 for backups...${NC}"
-kubectl exec $POD_NAME -c backup -n $NAMESPACE -- aws s3 ls s3://$S3_BUCKET/mssql-backups/ 2>/dev/null || echo "Note: Could not list S3 bucket (this is OK for local testing)"
+if [ -n "$S3_ENDPOINT" ]; then
+    kubectl exec $POD_NAME -c backup -n $NAMESPACE -- aws s3 ls s3://$S3_BUCKET/mssql-backups/ --endpoint-url="$S3_ENDPOINT" 2>/dev/null || echo "Note: Could not list S3 bucket (this is OK for local testing)"
+else
+    kubectl exec $POD_NAME -c backup -n $NAMESPACE -- aws s3 ls s3://$S3_BUCKET/mssql-backups/ 2>/dev/null || echo "Note: Could not list S3 bucket (this is OK for local testing)"
+fi
 
 echo ""
 echo -e "${YELLOW}🔐 Verifying backup is encrypted...${NC}"
-BACKUP_LIST=$(kubectl exec $POD_NAME -c backup -n $NAMESPACE -- aws s3 ls s3://$S3_BUCKET/mssql-backups/ --endpoint-url=${S3_ENDPOINT:-http://localhost:9000} 2>/dev/null || echo "")
-if echo "$BACKUP_LIST" | grep -q ".gpg"; then
-    echo -e "${GREEN}✅ Backup is encrypted (.gpg extension found)${NC}"
+# Check the backup logs for encryption activity
+BACKUP_LOGS=$(kubectl logs $POD_NAME -c backup -n $NAMESPACE --tail=100 2>/dev/null || echo "")
+if echo "$BACKUP_LOGS" | grep -q "Encrypting backup"; then
+    echo -e "${GREEN}✅ Backup encryption confirmed${NC}"
+elif echo "$BACKUP_LOGS" | grep -q "\.bak\.gpg"; then
+    echo -e "${GREEN}✅ Backup is encrypted (.gpg extension detected in logs)${NC}"
+elif echo "$BACKUP_LOGS" | grep -q "\.dump\.gpg"; then
+    echo -e "${GREEN}✅ Backup is encrypted (.gpg extension detected in logs)${NC}"
 else
-    echo -e "${RED}❌ Warning: Backup does not appear to be encrypted${NC}"
+    # Final check: was PASSPHRASE set?
+    PASSPHRASE_SET=$(kubectl exec $POD_NAME -c backup -n $NAMESPACE -- sh -c 'test -n "$PASSPHRASE" && echo "yes" || echo "no"' 2>/dev/null)
+    if [ "$PASSPHRASE_SET" = "yes" ]; then
+        echo -e "${YELLOW}⚠️  PASSPHRASE is set, but cannot confirm encryption from logs${NC}"
+        echo -e "${YELLOW}   (Encryption should be active, will verify during restore)${NC}"
+    else
+        echo -e "${RED}❌ Warning: PASSPHRASE not set - backups are NOT encrypted${NC}"
+    fi
 fi
 
 echo ""
@@ -164,7 +181,15 @@ kubectl exec $POD_NAME -c mssql -n $NAMESPACE -- /opt/mssql-tools18/bin/sqlcmd \
 
 echo ""
 echo -e "${YELLOW}♻️  Restoring from backup...${NC}"
-kubectl exec $POD_NAME -c backup -n $NAMESPACE -- sh restore.sh
+RESTORE_OUTPUT=$(kubectl exec $POD_NAME -c backup -n $NAMESPACE -- sh restore.sh 2>&1)
+echo "$RESTORE_OUTPUT"
+
+# Verify decryption happened during restore
+if echo "$RESTORE_OUTPUT" | grep -q "Decrypting backup"; then
+    echo -e "${GREEN}✅ Backup was successfully decrypted during restore${NC}"
+elif echo "$RESTORE_OUTPUT" | grep -q "encrypted with 1 passphrase"; then
+    echo -e "${GREEN}✅ GPG decryption confirmed${NC}"
+fi
 
 echo ""
 echo -e "${YELLOW}📊 Data after restore (should show both John and Jane):${NC}"

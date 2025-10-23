@@ -30,7 +30,7 @@ MINIO_EXISTS=$(kubectl get pod minio -n $TEST_NAMESPACE 2>/dev/null | grep -c "m
 
 if [ "$MINIO_EXISTS" -eq 0 ]; then
     echo -e "${YELLOW}📦 MinIO not found. Deploying MinIO in $TEST_NAMESPACE...${NC}"
-    NAMESPACE=$TEST_NAMESPACE ./setup-minio-k8s.sh
+    NAMESPACE=$TEST_NAMESPACE "$(dirname "$0")/setup-minio-k8s.sh"
 else
     echo -e "${GREEN}✅ MinIO already running in $TEST_NAMESPACE namespace${NC}"
 
@@ -54,12 +54,12 @@ echo ""
 
 # Run the test with MinIO configuration (same namespace)
 NAMESPACE="$TEST_NAMESPACE" \
-STATEFULSET_FILE="k8s-statefulset-test.yaml" \
+STATEFULSET_FILE="$(dirname "$0")/k8s-statefulset-test.yaml" \
 S3_ENDPOINT="$MINIO_ENDPOINT" \
 S3_ACCESS_KEY_ID="$MINIO_USER" \
 S3_SECRET_ACCESS_KEY="$MINIO_PASSWORD" \
 S3_BUCKET="$BUCKET_NAME" \
-./test-mssql-k8s.sh
+"$(dirname "$0")/test-mssql-k8s.sh"
 
 echo ""
 echo -e "${GREEN}🎉 All tests completed successfully!${NC}"

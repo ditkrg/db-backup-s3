@@ -323,17 +323,17 @@ docker compose up -d
 ### Docker Compose
 ```sh
 # Test MSSQL backup/restore with Docker Compose
-./test-mssql.sh
+./tests/test-mssql.sh
 ```
 
 ### Kubernetes (Recommended - Everything in One Namespace)
 ```sh
 # Complete automated test with local MinIO
 # Creates mssql-backup-test namespace with BOTH MinIO and MSSQL
-./test-mssql-k8s-with-minio.sh
+./tests/test-mssql-k8s-with-minio.sh
 
 # Manual test (if you already have S3/MinIO elsewhere)
-NAMESPACE=mssql-backup-test S3_ENDPOINT=http://your-s3 ./test-mssql-k8s.sh
+NAMESPACE=mssql-backup-test S3_ENDPOINT=http://your-s3 ./tests/test-mssql-k8s.sh
 
 # Clean up (removes everything - one command!)
 kubectl delete namespace mssql-backup-test
