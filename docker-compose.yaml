@@ -16,21 +16,35 @@ services:
       MYSQL_DATABASE: database
       MYSQL_ROOT_PASSWORD: root_password
 
+  mssql:
+    platform: linux/amd64
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: YourStrong@Passw0rd
+      MSSQL_PID: Express
+    ports:
+      - "11433:1433" # Use port 11433 externally to avoid conflicts
+    volumes:
+      - mssql-data:/var/opt/mssql # Database storage and backup location (shared with backup container)
+
   minio:
-    image: bitnami/minio
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
     ports:
       - 9000:9000
       - 9001:9001
     environment:
       MINIO_ROOT_USER: miniouser
       MINIO_ROOT_PASSWORD: minioroot
-      MINIO_DEFAULT_BUCKETS: backups
+    volumes:
+      - minio-data:/data
 
   backup-postgres:
     build:
       context: .
       args:
-        ALPINE_VERSION: '3.21'
+        ALPINE_VERSION: "3.21"
     environment:
       #      SCHEDULE: '@weekly'     # optional
       BACKUP_KEEP_DAYS: 7 # optional
@@ -52,7 +66,7 @@ services:
     build:
       context: .
       args:
-        ALPINE_VERSION: '3.21'
+        ALPINE_VERSION: "3.21"
     environment:
       #      SCHEDULE: '@weekly'     # optional
       BACKUP_KEEP_DAYS: 7 # optional
@@ -69,3 +83,32 @@ services:
       DATABASE_PORT: 3306
       DATABASE_SERVER: mysql
       DATABASE_PASSWORD: root_password
+
+  backup-mssql:
+    platform: linux/amd64
+    build:
+      context: .
+      args:
+        ALPINE_VERSION: "3.21"
+    volumes:
+      - mssql-data:/var/opt/mssql # Shared volume for native BACKUP DATABASE command
+    environment:
+      #      SCHEDULE: '@weekly'     # optional
+      BACKUP_KEEP_DAYS: 7 # optional
+      # PASSPHRASE: passphrase # optional - uncomment to enable GPG encryption
+      # S3_REGION:
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: miniouser
+      S3_SECRET_ACCESS_KEY: minioroot
+      S3_BUCKET: backups
+      S3_PREFIX: mssql-backups
+      DATABASE_HOST: mssql
+      DATABASE_NAME: TestDB
+      DATABASE_USER: sa
+      DATABASE_PORT: 1433
+      DATABASE_SERVER: mssql
+      DATABASE_PASSWORD: YourStrong@Passw0rd
+      MSSQL_BACKUP_DIR: /var/opt/mssql/data # Path where MSSQL backups are stored (must match volume mount)
+volumes:
+  mssql-data: # MSSQL database storage
+  minio-data: # MinIO object storage

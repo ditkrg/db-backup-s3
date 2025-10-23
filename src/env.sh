@@ -4,7 +4,7 @@ if [ -z "$S3_BUCKET" ]; then
 fi
 
 if [ -z "$DATABASE_SERVER" ]; then
-  echo "You need to set the DATABASE_SERVER environment variable. (postgres, mariadb)"
+  echo "You need to set the DATABASE_SERVER environment variable. (postgres, mariadb, mssql)"
   exit 1
 fi
 

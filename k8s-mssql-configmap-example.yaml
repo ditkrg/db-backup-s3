@@ -1,0 +1,98 @@
+# Example mssql-config ConfigMap
+# This ConfigMap contains non-sensitive configuration for MSSQL and backup sidecar
+#
+# Usage:
+#   1. Copy this file and update with your actual values
+#   2. Apply: kubectl apply -f k8s-mssql-configmap.yaml
+#   3. Create secret: kubectl apply -f k8s-mssql-secret.yaml
+#   4. Deploy: kubectl apply -f k8s-statefulset-with-sidecar.yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-config
+  namespace: default # Update with your namespace
+data:
+  # ============================================
+  # Database Configuration
+  # ============================================
+  DATABASE_SERVER: "mssql"
+  DATABASE_HOST: "mssql-service" # MSSQL hostname (overridden to "localhost" in sidecar pattern)
+  DATABASE_NAME: "MyDatabase" # The database to backup
+  DATABASE_PORT: "1433"
+
+  # ============================================
+  # MSSQL Specific Configuration
+  # ============================================
+  MSSQL_BACKUP_DIR: "/var/opt/mssql/data"
+  # MSSQL_EXTRA_OPTS: ""  # Additional sqlcmd options if needed
+
+  # ============================================
+  # Backup Schedule and Retention
+  # ============================================
+  SCHEDULE: "0 2 * * *" # Daily at 2 AM (cron format)
+  BACKUP_KEEP_DAYS: "7" # Keep backups for 7 days
+
+  # Cron schedule examples:
+  # "@daily"          - Once per day at midnight
+  # "@weekly"         - Once per week at midnight Sunday
+  # "@hourly"         - Once per hour
+  # "0 */6 * * *"     - Every 6 hours
+  # "0 2 * * *"       - Every day at 2 AM
+  # "0 3 * * 0"       - Every Sunday at 3 AM
+  # "0 0 1 * *"       - First day of every month at midnight
+
+  # ============================================
+  # AWS S3 Configuration
+  # ============================================
+  S3_BUCKET: "my-database-backups"
+  S3_PREFIX: "mssql-backups"
+  S3_REGION: "us-east-1"
+
+  # ============================================
+  # Optional: S3-Compatible Storage (MinIO, Wasabi, etc.)
+  # ============================================
+  # Uncomment and configure if using non-AWS S3-compatible storage
+  S3_ENDPOINT: "https://s3.example.com" # Your S3-compatible endpoint
+  S3_S3V4: "yes" # Use Signature Version 4
+
+  # Common S3-compatible endpoints:
+  # MinIO:        "https://minio.example.com"
+  # Wasabi:       "https://s3.wasabisys.com"
+  # DigitalOcean: "https://nyc3.digitaloceanspaces.com"
+  # Backblaze B2: "https://s3.us-west-001.backblazeb2.com"
+
+---
+# Notes:
+#
+# 1. ConfigMap vs Secret:
+#    - ConfigMap: Non-sensitive configuration (endpoints, names, schedules)
+#    - Secret: Sensitive data (passwords, access keys)
+#
+# 2. To update ConfigMap after deployment:
+#    kubectl apply -f k8s-mssql-configmap.yaml
+#    kubectl rollout restart statefulset/mssql
+#
+# 3. To view the ConfigMap:
+#    kubectl get configmap mssql-config -o yaml
+#
+# 4. DATABASE_HOST behavior:
+#    - In sidecar pattern: Set to "localhost" (overridden in StatefulSet)
+#    - In CronJob pattern: Use service name like "mssql-service"
+#    The ConfigMap default is for CronJob; sidecar overrides it in the pod spec.
+#
+# 5. Alternative: Create from command line:
+#    kubectl create configmap mssql-config \
+#      --from-literal=DATABASE_SERVER='mssql' \
+#      --from-literal=DATABASE_HOST='mssql-service' \
+#      --from-literal=DATABASE_NAME='MyDatabase' \
+#      --from-literal=DATABASE_PORT='1433' \
+#      --from-literal=MSSQL_BACKUP_DIR='/var/opt/mssql/data' \
+#      --from-literal=SCHEDULE='0 2 * * *' \
+#      --from-literal=BACKUP_KEEP_DAYS='7' \
+#      --from-literal=S3_BUCKET='my-backups' \
+#      --from-literal=S3_PREFIX='mssql-backups' \
+#      --from-literal=S3_REGION='us-east-1' \
+#      --from-literal=S3_ENDPOINT='https://s3.example.com' \
+#      --from-literal=S3_S3V4='yes'
+

@@ -6,6 +6,8 @@ backup() {
         backup_postgres
     elif [[ "$DATABASE_SERVER" == "mariadb" ]]; then
         backup_mariadb
+    elif [[ "$DATABASE_SERVER" == "mssql" ]]; then
+        backup_mssql
     else
         echo "Unknown database server: $DATABASE_SERVER"
         exit 1
@@ -17,6 +19,8 @@ restore() {
         restore_postgres
     elif [[ "$DATABASE_SERVER" == "mariadb" ]]; then
         restore_mariadb
+    elif [[ "$DATABASE_SERVER" == "mssql" ]]; then
+        restore_mssql
     else
         echo "Unknown database server: $DATABASE_SERVER"
         exit 1
@@ -54,4 +58,41 @@ restore_mariadb() {
         -u $DATABASE_USER \
         --password="$DATABASE_PASSWORD" "$MARIADB_EXTRA_OPTS" \
         $DATABASE_NAME < db.dump
+}
+
+backup_mssql() {
+    # Use native BACKUP DATABASE command
+    # Note: Requires shared volume mounted at MSSQL_BACKUP_DIR
+    sqlcmd -S ${DATABASE_HOST},${DATABASE_PORT} \
+        -U ${DATABASE_USER} \
+        -P "${DATABASE_PASSWORD}" \
+        -C \
+        -Q "BACKUP DATABASE [${DATABASE_NAME}] TO DISK = N'${MSSQL_BACKUP_DIR}/db.bak' WITH INIT;" \
+        $MSSQL_EXTRA_OPTS
+}
+
+restore_mssql() {
+    echo "Restoring from backup..."
+    # Get logical file names from the backup
+    logical_files=$(sqlcmd -S ${DATABASE_HOST},${DATABASE_PORT} \
+        -U ${DATABASE_USER} \
+        -P "${DATABASE_PASSWORD}" \
+        -C -W \
+        -Q "SET NOCOUNT ON; RESTORE FILELISTONLY FROM DISK = N'${MSSQL_BACKUP_DIR}/db.bak';" \
+        | grep -v '^$' | awk '{print $1}' | tail -n +3)
+
+    # Parse logical names (first two lines after headers)
+    data_file=$(echo "$logical_files" | sed -n '1p')
+    log_file=$(echo "$logical_files" | sed -n '2p')
+
+    # Restore database with MOVE options
+    sqlcmd -S ${DATABASE_HOST},${DATABASE_PORT} \
+        -U ${DATABASE_USER} \
+        -P "${DATABASE_PASSWORD}" \
+        -C \
+        -Q "RESTORE DATABASE [${DATABASE_NAME}] FROM DISK = N'${MSSQL_BACKUP_DIR}/db.bak' WITH REPLACE, MOVE N'${data_file}' TO N'${MSSQL_BACKUP_DIR}/${DATABASE_NAME}.mdf', MOVE N'${log_file}' TO N'${MSSQL_BACKUP_DIR}/${DATABASE_NAME}_log.ldf';" \
+        $MSSQL_EXTRA_OPTS
+
+    # Clean up backup file
+    rm "${MSSQL_BACKUP_DIR}/db.bak"
 }
