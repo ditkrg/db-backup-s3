@@ -13,7 +13,7 @@ timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
 
 # MSSQL uses .bak extension, other databases use .dump
 if [ "$DATABASE_SERVER" = "mssql" ]; then
-  local_file="${MSSQL_BACKUP_DIR}/db.bak"
+  local_file="${MSSQL_DATA_DIR}/db.bak"
   s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.bak"
 else
   local_file="db.dump"

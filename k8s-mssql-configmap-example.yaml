@@ -24,7 +24,7 @@ data:
   # ============================================
   # MSSQL Specific Configuration
   # ============================================
-  MSSQL_BACKUP_DIR: "/var/opt/mssql/data"
+  MSSQL_DATA_DIR: "/var/opt/mssql/data"
   # MSSQL_EXTRA_OPTS: ""  # Additional sqlcmd options if needed
 
   # ============================================
@@ -87,7 +87,7 @@ data:
 #      --from-literal=DATABASE_HOST='mssql-service' \
 #      --from-literal=DATABASE_NAME='MyDatabase' \
 #      --from-literal=DATABASE_PORT='1433' \
-#      --from-literal=MSSQL_BACKUP_DIR='/var/opt/mssql/data' \
+#      --from-literal=MSSQL_DATA_DIR='/var/opt/mssql/data' \
 #      --from-literal=SCHEDULE='0 2 * * *' \
 #      --from-literal=BACKUP_KEEP_DAYS='7' \
 #      --from-literal=S3_BUCKET='my-backups' \

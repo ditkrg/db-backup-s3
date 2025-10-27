@@ -10,7 +10,7 @@ s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}"
 
 # MSSQL uses .bak extension, other databases use .dump
 if [ "$DATABASE_SERVER" = "mssql" ]; then
-  backup_file="${MSSQL_BACKUP_DIR}/db.bak"
+  backup_file="${MSSQL_DATA_DIR}/db.bak"
   if [ -z "$PASSPHRASE" ]; then
     file_type=".bak"
   else
@@ -52,7 +52,7 @@ echo "Restoring from backup..."
 restore
 
 # Clean up backup file
-# Note: For MSSQL, the file is in MSSQL_BACKUP_DIR and cleanup happens in restore_mssql()
+# Note: For MSSQL, the file is in MSSQL_DATA_DIR and cleanup happens in restore_mssql()
 if [ "$DATABASE_SERVER" != "mssql" ]; then
   rm "${backup_file}"
 fi

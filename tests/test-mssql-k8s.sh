@@ -16,7 +16,7 @@ STATEFULSET_NAME="mssql"
 POD_NAME="mssql-0"
 MSSQL_PASSWORD="YourStrong@Passw0rd"
 DATABASE_NAME="TestDB"
-MSSQL_BACKUP_DIR="${MSSQL_BACKUP_DIR:-/var/opt/mssql/data}"
+MSSQL_DATA_DIR="${MSSQL_DATA_DIR:-/var/opt/mssql/data}"
 S3_BUCKET="${S3_BUCKET:-test-backups}"
 S3_ENDPOINT="${S3_ENDPOINT:-}"  # Set this if using MinIO or other S3-compatible storage
 STATEFULSET_FILE="${STATEFULSET_FILE:-$(dirname "$0")/../k8s-statefulset-with-sidecar.yaml}"
@@ -66,7 +66,7 @@ kubectl create configmap mssql-config -n $NAMESPACE \
   --from-literal=DATABASE_HOST='mssql-service' \
   --from-literal=DATABASE_NAME="$DATABASE_NAME" \
   --from-literal=DATABASE_PORT='1433' \
-  --from-literal=MSSQL_BACKUP_DIR='/var/opt/mssql/data' \
+  --from-literal=MSSQL_DATA_DIR='/var/opt/mssql/data' \
   --from-literal=SCHEDULE='*/5 * * * *' \
   --from-literal=BACKUP_KEEP_DAYS='7' \
   --from-literal=S3_BUCKET="$S3_BUCKET" \

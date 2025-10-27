@@ -67,7 +67,7 @@ services:
       DATABASE_USER: sa
       DATABASE_PASSWORD: YourStrong@Passw0rd
       DATABASE_SERVER: mssql
-      MSSQL_BACKUP_DIR: /var/opt/mssql/data  # Path where backups are stored
+      MSSQL_DATA_DIR: /var/opt/mssql/data  # MSSQL data directory (where backups are temporarily stored)
 
 volumes:
   mssql-data:  # Shared volume for MSSQL data and backups
@@ -185,7 +185,7 @@ spec:
                 secretKeyRef:
                   name: db-credentials
                   key: password
-            - name: MSSQL_BACKUP_DIR
+            - name: MSSQL_DATA_DIR
               value: "/var/opt/mssql/data"
             - name: S3_REGION
               value: "us-east-1"
@@ -264,7 +264,7 @@ spec:
           value: "localhost"  # Same pod
         - name: DATABASE_PORT
           value: "1433"
-        - name: MSSQL_BACKUP_DIR
+        - name: MSSQL_DATA_DIR
           value: "/var/opt/mssql/data"
         # ... (S3 and DB credentials from secrets)
         volumeMounts:
@@ -274,7 +274,7 @@ spec:
 
 **Key Configuration:**
 - `DATABASE_HOST: "localhost"` - Both containers are in the same pod
-- `MSSQL_BACKUP_DIR: "/var/opt/mssql/data"` - Must match MSSQL's data directory
+- `MSSQL_DATA_DIR: "/var/opt/mssql/data"` - MSSQL's data directory (where backup files are temporarily stored)
 - Both containers mount the same volume at `/var/opt/mssql/data`
 - Set `SCHEDULE` env var for automated backups (cron format)
 

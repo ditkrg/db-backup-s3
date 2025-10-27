@@ -108,7 +108,7 @@ services:
       DATABASE_PORT: 1433
       DATABASE_SERVER: mssql
       DATABASE_PASSWORD: YourStrong@Passw0rd
-      MSSQL_BACKUP_DIR: /var/opt/mssql/data # Path where MSSQL backups are stored (must match volume mount)
+      MSSQL_DATA_DIR: /var/opt/mssql/data # Path where MSSQL backups are stored (must match volume mount)
 volumes:
   mssql-data: # MSSQL database storage
   minio-data: # MinIO object storage
