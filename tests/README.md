@@ -11,7 +11,12 @@ This directory contains automated test scripts for validating the backup and res
 - **`test-mssql-k8s.sh`**: Tests MSSQL StatefulSet with backup sidecar (requires existing S3/MinIO)
 - **`test-mssql-k8s-with-minio.sh`**: Complete automated test that deploys MinIO alongside MSSQL
 - **`setup-minio-k8s.sh`**: Helper script to deploy MinIO in Kubernetes
-- **`k8s-statefulset-test.yaml`**: Test StatefulSet configuration used by the test scripts
+
+### Kubernetes Configuration Examples
+- **`k8s-statefulset-with-sidecar.yaml`**: Production-ready MSSQL StatefulSet with backup sidecar
+- **`k8s-statefulset-test.yaml`**: Test StatefulSet configuration used by automated test scripts
+- **`k8s-mssql-configmap-example.yaml`**: Example ConfigMap for non-sensitive configuration
+- **`k8s-mssql-secret-example.yaml`**: Example Secret for sensitive credentials
 
 ## Usage
 

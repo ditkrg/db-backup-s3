@@ -232,7 +232,7 @@ For MSSQL StatefulSets with `ReadWriteOnce` volumes, use the **sidecar pattern**
 
 **Example: StatefulSet with Backup Sidecar**
 
-See [`k8s-statefulset-with-sidecar.yaml`](./k8s-statefulset-with-sidecar.yaml) for a complete example.
+See [`tests/k8s-statefulset-with-sidecar.yaml`](./tests/k8s-statefulset-with-sidecar.yaml) for a complete example.
 
 ```yaml
 apiVersion: apps/v1

@@ -19,7 +19,7 @@ DATABASE_NAME="TestDB"
 MSSQL_DATA_DIR="${MSSQL_DATA_DIR:-/var/opt/mssql/data}"
 S3_BUCKET="${S3_BUCKET:-test-backups}"
 S3_ENDPOINT="${S3_ENDPOINT:-}"  # Set this if using MinIO or other S3-compatible storage
-STATEFULSET_FILE="${STATEFULSET_FILE:-$(dirname "$0")/../k8s-statefulset-with-sidecar.yaml}"
+STATEFULSET_FILE="${STATEFULSET_FILE:-$(dirname "$0")/k8s-statefulset-with-sidecar.yaml}"
 
 # Cleanup function
 cleanup() {

@@ -5,9 +5,9 @@
 # MSSQL's native backup files.
 #
 # Prerequisites:
-#   1. Create the ConfigMap: kubectl apply -f k8s-mssql-configmap-example.yaml
-#   2. Create the Secret: kubectl apply -f k8s-mssql-secret-example.yaml
-#   3. Apply this StatefulSet: kubectl apply -f k8s-statefulset-with-sidecar.yaml
+#   1. Create the ConfigMap: kubectl apply -f tests/k8s-mssql-configmap-example.yaml
+#   2. Create the Secret: kubectl apply -f tests/k8s-mssql-secret-example.yaml
+#   3. Apply this StatefulSet: kubectl apply -f tests/k8s-statefulset-test.yaml
 #
 # The backup container will automatically run backups according to the SCHEDULE.
 #
@@ -117,14 +117,14 @@ spec:
 #
 # This StatefulSet uses a ConfigMap for non-sensitive config and a Secret for credentials:
 #
-# ConfigMap (mssql-config) - See k8s-mssql-configmap-example.yaml
+# ConfigMap (mssql-config) - See tests/k8s-mssql-configmap-example.yaml
 #   - DATABASE_SERVER, DATABASE_HOST, DATABASE_NAME, DATABASE_PORT
 #   - MSSQL_DATA_DIR, MSSQL_EXTRA_OPTS
 #   - SCHEDULE, BACKUP_KEEP_DAYS
 #   - S3_BUCKET, S3_PREFIX, S3_REGION, S3_ENDPOINT, S3_S3V4
 #   Note: DATABASE_HOST is overridden to "localhost" in the StatefulSet for sidecar pattern
 #
-# Secret (mssql-general) - See k8s-mssql-secret-example.yaml
+# Secret (mssql-general) - See tests/k8s-mssql-secret-example.yaml
 #   - MSSQL_SA_PASSWORD
 #   - DATABASE_USER, DATABASE_PASSWORD
 #   - S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY

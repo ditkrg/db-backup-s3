@@ -3,9 +3,9 @@
 #
 # Usage:
 #   1. Copy this file and update with your actual values
-#   2. Apply: kubectl apply -f k8s-mssql-configmap.yaml
-#   3. Create secret: kubectl apply -f k8s-mssql-secret.yaml
-#   4. Deploy: kubectl apply -f k8s-statefulset-with-sidecar.yaml
+#   2. Apply: kubectl apply -f tests/k8s-mssql-configmap.yaml
+#   3. Create secret: kubectl apply -f tests/k8s-mssql-secret.yaml
+#   4. Deploy: kubectl apply -f tests/k8s-statefulset-with-sidecar.yaml
 
 apiVersion: v1
 kind: ConfigMap
