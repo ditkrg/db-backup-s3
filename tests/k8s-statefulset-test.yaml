@@ -1,0 +1,138 @@
+# MSSQL StatefulSet with Backup Sidecar
+#
+# This configuration runs a backup container as a sidecar alongside MSSQL Server.
+# Both containers share the same volume, allowing the backup container to access
+# MSSQL's native backup files.
+#
+# Prerequisites:
+#   1. Create the ConfigMap: kubectl apply -f tests/k8s-mssql-configmap-example.yaml
+#   2. Create the Secret: kubectl apply -f tests/k8s-mssql-secret-example.yaml
+#   3. Apply this StatefulSet: kubectl apply -f tests/k8s-statefulset-test.yaml
+#
+# The backup container will automatically run backups according to the SCHEDULE.
+#
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mssql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mssql
+  serviceName: mssql
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      containers:
+        # MSSQL Server Container
+        - name: mssql
+          image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_PID
+              value: Express
+          envFrom:
+            - secretRef:
+                name: mssql-general
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 4Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+                - NET_BIND_SERVICE
+              drop:
+                - ALL
+          volumeMounts:
+            - mountPath: /var/opt/mssql/data
+              name: data
+
+        # Backup Sidecar Container
+        - name: backup
+          image: reg.dev.krd/db-backup-s3/db-backup-s3:test
+          imagePullPolicy: Always # Update with your image
+          # Load configuration from ConfigMap and Secret
+          envFrom:
+            - configMapRef:
+                name: mssql-config # Non-sensitive config (schedule, bucket, endpoint)
+            - secretRef:
+                name: mssql-general # Sensitive credentials (passwords, keys)
+
+          # Override specific values after loading from ConfigMap/Secret
+          env:
+            # Override DATABASE_HOST from ConfigMap since we're in the same pod
+            - name: DATABASE_HOST
+              value: "localhost" # Sidecar uses localhost; ConfigMap default is for CronJob pattern
+            # Set HOME to writable location for AWS CLI
+            - name: HOME
+              value: "/tmp"
+
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false # Needs write access for temp backup files
+          volumeMounts:
+            - mountPath: /var/opt/mssql/data
+              name: data
+
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 4Gi
+
+---
+# Configuration Structure
+#
+# This StatefulSet uses a ConfigMap for non-sensitive config and a Secret for credentials:
+#
+# ConfigMap (mssql-config) - See tests/k8s-mssql-configmap-example.yaml
+#   - DATABASE_SERVER, DATABASE_HOST, DATABASE_NAME, DATABASE_PORT
+#   - MSSQL_DATA_DIR, MSSQL_EXTRA_OPTS
+#   - SCHEDULE, BACKUP_KEEP_DAYS
+#   - S3_BUCKET, S3_PREFIX, S3_REGION, S3_ENDPOINT, S3_S3V4
+#   Note: DATABASE_HOST is overridden to "localhost" in the StatefulSet for sidecar pattern
+#
+# Secret (mssql-general) - See tests/k8s-mssql-secret-example.yaml
+#   - MSSQL_SA_PASSWORD
+#   - DATABASE_USER, DATABASE_PASSWORD
+#   - S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
+#   - PASSPHRASE (optional, for GPG encryption)
+#
+# Benefits of separating ConfigMap and Secret:
+#   - Easier to update non-sensitive configuration
+#   - Better security practices (minimal secret exposure)
+#   - ConfigMap changes don't require secret rotation
+#   - Can use different RBAC policies for each
+

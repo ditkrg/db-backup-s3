@@ -10,16 +10,23 @@ echo "Creating backup of $DATABASE_NAME database..."
 backup
 
 timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
-s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.dump"
+
+# MSSQL uses .bak extension, other databases use .dump
+if [ "$DATABASE_SERVER" = "mssql" ]; then
+  local_file="${MSSQL_DATA_DIR}/db.bak"
+  s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.bak"
+else
+  local_file="db.dump"
+  s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.dump"
+fi
 
 if [ -n "$PASSPHRASE" ]; then
   echo "Encrypting backup..."
-  gpg --symmetric --batch --passphrase "$PASSPHRASE" db.dump
-  rm db.dump
-  local_file="db.dump.gpg"
+  gpg --symmetric --batch --passphrase "$PASSPHRASE" "$local_file"
+  rm "$local_file"
+  local_file="${local_file}.gpg"
   s3_uri="${s3_uri_base}.gpg"
 else
-  local_file="db.dump"
   s3_uri="$s3_uri_base"
 fi
 
