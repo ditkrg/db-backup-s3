@@ -21,6 +21,15 @@ RUN curl -O https://download.microsoft.com/download/b/9/f/b9f3cce4-3925-46d4-9f4
     apk add --allow-untrusted mssql-tools18_18.1.1.1-1_amd64.apk && \
     rm msodbcsql18_18.1.1.1-1_amd64.apk mssql-tools18_18.1.1.1-1_amd64.apk
 
+# Install go-cron for scheduled backups
+# Source: https://github.com/ivoronin/go-cron
+ARG TARGETARCH
+RUN curl -L https://github.com/ivoronin/go-cron/releases/download/v0.0.5/go-cron_0.0.5_linux_${TARGETARCH}.tar.gz -O && \
+    tar xvf go-cron_0.0.5_linux_${TARGETARCH}.tar.gz && \
+    rm go-cron_0.0.5_linux_${TARGETARCH}.tar.gz && \
+    mv go-cron /usr/local/bin/go-cron && \
+    chmod +x /usr/local/bin/go-cron
+
 RUN rm -rf /var/cache/apk/*
 
 ENV PATH="${PATH}:/opt/mssql-tools18/bin"
