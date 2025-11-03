@@ -21,31 +21,40 @@ RUN curl -O https://download.microsoft.com/download/b/9/f/b9f3cce4-3925-46d4-9f4
     apk add --allow-untrusted mssql-tools18_18.1.1.1-1_amd64.apk && \
     rm msodbcsql18_18.1.1.1-1_amd64.apk mssql-tools18_18.1.1.1-1_amd64.apk
 
+# Install go-cron for scheduled backups
+# Source: https://github.com/ivoronin/go-cron
+ARG TARGETARCH
+RUN curl -L https://github.com/ivoronin/go-cron/releases/download/v0.0.5/go-cron_0.0.5_linux_${TARGETARCH}.tar.gz -O && \
+    tar xvf go-cron_0.0.5_linux_${TARGETARCH}.tar.gz && \
+    rm go-cron_0.0.5_linux_${TARGETARCH}.tar.gz && \
+    mv go-cron /usr/local/bin/go-cron && \
+    chmod +x /usr/local/bin/go-cron
+
 RUN rm -rf /var/cache/apk/*
 
 ENV PATH="${PATH}:/opt/mssql-tools18/bin"
 
-ENV DATABASE_NAME ''
-ENV DATABASE_HOST ''
-ENV DATABASE_PORT ''
-ENV DATABASE_USER ''
-ENV DATABASE_SERVER ''
-ENV DATABASE_PASSWORD ''
-ENV PGDUMP_EXTRA_OPTS ''
-ENV MARIADB_DUMP_EXTRA_OPTS ''
-ENV MARIADB_EXTRA_OPTS ''
-ENV MSSQL_EXTRA_OPTS ''
-ENV MSSQL_DATA_DIR '/var/opt/mssql/data'
-ENV S3_ACCESS_KEY_ID ''
-ENV S3_SECRET_ACCESS_KEY ''
-ENV S3_BUCKET ''
-ENV S3_REGION 'us-west-1'
-ENV S3_PATH 'backup'
-ENV S3_ENDPOINT ''
-ENV S3_S3V4 'no'
-ENV SCHEDULE ''
-ENV PASSPHRASE ''
-ENV BACKUP_KEEP_DAYS ''
+ENV DATABASE_NAME=''
+ENV DATABASE_HOST=''
+ENV DATABASE_PORT=''
+ENV DATABASE_USER=''
+ENV DATABASE_SERVER=''
+ENV DATABASE_PASSWORD=''
+ENV PGDUMP_EXTRA_OPTS=''
+ENV MARIADB_DUMP_EXTRA_OPTS=''
+ENV MARIADB_EXTRA_OPTS=''
+ENV MSSQL_EXTRA_OPTS=''
+ENV MSSQL_DATA_DIR='/var/opt/mssql/data'
+ENV S3_ACCESS_KEY_ID=''
+ENV S3_SECRET_ACCESS_KEY=''
+ENV S3_BUCKET=''
+ENV S3_REGION='us-west-1'
+ENV S3_PATH='backup'
+ENV S3_ENDPOINT=''
+ENV S3_S3V4='no'
+ENV SCHEDULE=''
+ENV PASSPHRASE=''
+ENV BACKUP_KEEP_DAYS=''
 
 ADD src/run.sh run.sh
 ADD src/env.sh env.sh

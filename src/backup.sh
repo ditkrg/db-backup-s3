@@ -6,37 +6,41 @@ set -o pipefail
 source ./env.sh
 source ./helpers.sh
 
-echo "Creating backup of $DATABASE_NAME database..."
-backup
+for CURRENT_DATABASE in $DATABASE_NAMES_LIST; do
+  DATABASE_NAME="$CURRENT_DATABASE"
 
-timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
+  echo "Creating backup of $DATABASE_NAME database..."
+  backup
 
-# MSSQL uses .bak extension, other databases use .dump
-if [ "$DATABASE_SERVER" = "mssql" ]; then
-  local_file="${MSSQL_DATA_DIR}/db.bak"
-  s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.bak"
-else
-  local_file="db.dump"
-  s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.dump"
-fi
+  timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
 
-if [ -n "$PASSPHRASE" ]; then
-  echo "Encrypting backup..."
-  gpg --symmetric --batch --passphrase "$PASSPHRASE" "$local_file"
+  # MSSQL uses .bak extension, other databases use .dump
+  if [ "$DATABASE_SERVER" = "mssql" ]; then
+    local_file="${MSSQL_DATA_DIR}/db.bak"
+    s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.bak"
+  else
+    local_file="db.dump"
+    s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}/${DATABASE_NAME}_${timestamp}.dump"
+  fi
+
+  if [ -n "${PASSPHRASE:-}" ]; then
+    echo "Encrypting backup..."
+    gpg --symmetric --batch --passphrase "$PASSPHRASE" "$local_file"
+    rm "$local_file"
+    local_file="${local_file}.gpg"
+    s3_uri="${s3_uri_base}.gpg"
+  else
+    s3_uri="$s3_uri_base"
+  fi
+
+  echo "Uploading backup of $DATABASE_NAME to $S3_BUCKET..."
+  aws $aws_args s3 cp "$local_file" "$s3_uri"
   rm "$local_file"
-  local_file="${local_file}.gpg"
-  s3_uri="${s3_uri_base}.gpg"
-else
-  s3_uri="$s3_uri_base"
-fi
-
-echo "Uploading backup to $S3_BUCKET..."
-aws $aws_args s3 cp "$local_file" "$s3_uri"
-rm "$local_file"
+done
 
 echo "Backup complete."
 
-if [ -n "$BACKUP_KEEP_DAYS" ]; then
+if [ -n "${BACKUP_KEEP_DAYS:-}" ]; then
   sec=$((86400*BACKUP_KEEP_DAYS))
   date_from_remove=$(date -d "@$(($(date +%s) - sec))" +%Y-%m-%d)
   backups_query="Contents[?LastModified<='${date_from_remove} 00:00:00'].{Key: Key}"
