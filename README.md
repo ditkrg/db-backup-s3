@@ -28,7 +28,10 @@ services:
       S3_BUCKET: my-bucket
       S3_PREFIX: backup
       DATABASE_HOST: postgres
+      # Back up a single database
       DATABASE_NAME: dbname
+      # Or back up multiple databases (comma or space separated)
+      # DATABASE_NAMES: "db_one,db_two"
       DATABASE_USER: user
       DATABASE_PASSWORD: password
       DATABASE_SERVER: postgres  # postgres, mariadb, or mssql
@@ -63,7 +66,7 @@ services:
       S3_PREFIX: mssql-backup
       DATABASE_HOST: mssql
       DATABASE_PORT: 1433
-      DATABASE_NAME: MyDatabase
+      DATABASE_NAME: MyDatabase  # or set DATABASE_NAMES for multiple databases
       DATABASE_USER: sa
       DATABASE_PASSWORD: YourStrong@Passw0rd
       DATABASE_SERVER: mssql
@@ -76,6 +79,7 @@ volumes:
 See [`docker-compose.yaml`](./docker-compose.yaml) for a complete working example.
 
 - Images are tagged by the major PostgreSQL version supported: `11`, `12`, `13`, `14`, or `15`.
+- To back up multiple databases in a single run, set `DATABASE_NAMES` to a comma- or space-separated list. `DATABASE_NAME` remains available for single database backups.
 - The `SCHEDULE` variable determines backup frequency. See go-cron schedules documentation [here](http://godoc.org/github.com/robfig/cron#hdr-Predefined_schedules). Omit to run the backup immediately and then exit.
 - If `PASSPHRASE` is provided, the backup will be encrypted using GPG.
 - Run `docker exec <container name> sh backup.sh` to trigger a backup ad-hoc.

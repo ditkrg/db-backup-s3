@@ -104,6 +104,7 @@ services:
       S3_PREFIX: mssql-backups
       DATABASE_HOST: mssql
       DATABASE_NAME: TestDB
+      # DATABASE_NAMES: "TestDB,AnotherDatabase"  # Optional: back up multiple databases
       DATABASE_USER: sa
       DATABASE_PORT: 1433
       DATABASE_SERVER: mssql
