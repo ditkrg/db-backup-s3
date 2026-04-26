@@ -28,6 +28,8 @@ fi
 if [ $# -eq 1 ]; then
   timestamp="$1"
   key_suffix="${DATABASE_NAME}_${timestamp}${file_type}"
+elif [ -n "${RESTORE_BACKUP_FILENAME:-}" ]; then
+  key_suffix="${RESTORE_BACKUP_FILENAME}"
 else
   echo "Finding latest backup..."
   key_suffix=$(
