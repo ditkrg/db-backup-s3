@@ -8,9 +8,8 @@ if [ "$S3_S3V4" = "yes" ]; then
   aws configure set default.s3.signature_version s3v4
 fi
 
-# restore.sh only reads from S3 (s3 ls, s3 cp from bucket to disk); it never uploads.
 if [ "${AUTO_RESTORE:-}" = "true" ] || [ "${AUTO_RESTORE:-}" = "1" ]; then
-  echo "AUTO_RESTORE is enabled; restoring from S3 before backup schedule..."
+  echo "AUTO_RESTORE is enabled; restoring from S3..."
   sh restore.sh
 fi
 
